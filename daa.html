@@ -1,0 +1,564 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bubble Sort Battle Game</title>
+
+  <style>
+
+    body{
+      margin:0;
+      font-family:Arial, sans-serif;
+      background:linear-gradient(135deg,#1a002b,#16213e,#0f3460,#533483);
+      background-size:400% 400%;
+      animation:bgMove 10s infinite alternate;
+      color:white;
+      text-align:center;
+      overflow-x:hidden;
+    }
+
+    @keyframes bgMove{
+      0%{background-position:left;}
+      100%{background-position:right;}
+    }
+
+    .page{
+      display:none;
+      padding:40px;
+    }
+
+    .active{
+      display:block;
+    }
+
+    h1{
+      font-size:50px;
+      text-shadow:0px 0px 15px cyan;
+    }
+
+    h2{
+      color:#ffd369;
+    }
+
+    button{
+      padding:14px 28px;
+      margin:12px;
+      border:none;
+      border-radius:12px;
+      cursor:pointer;
+      font-size:18px;
+      font-weight:bold;
+      background:linear-gradient(to right,#ff8c00,#ff2e63);
+      color:white;
+      transition:0.3s;
+      box-shadow:0px 0px 10px rgba(255,255,255,0.3);
+    }
+
+    button:hover{
+      transform:scale(1.08);
+    }
+
+    button:disabled{
+      background:gray;
+      cursor:not-allowed;
+    }
+
+    input{
+      padding:12px;
+      width:320px;
+      border:none;
+      border-radius:10px;
+      font-size:16px;
+      margin-top:15px;
+    }
+
+    .array-container{
+      display:flex;
+      justify-content:center;
+      align-items:flex-end;
+      gap:10px;
+      height:340px;
+      margin-top:40px;
+      flex-wrap:wrap;
+    }
+
+    .bar{
+      width:55px;
+      background:linear-gradient(to top,#00c6ff,#0072ff);
+      color:white;
+      display:flex;
+      justify-content:center;
+      align-items:flex-end;
+      border-radius:10px 10px 0 0;
+      font-weight:bold;
+      transition:0.4s;
+      box-shadow:0px 0px 12px rgba(0,255,255,0.5);
+    }
+
+    .active-bar{
+      background:red !important;
+    }
+
+    .swap-bar{
+      background:yellow !important;
+      color:black;
+    }
+
+    .sorted{
+      background:limegreen !important;
+    }
+
+    #status{
+      margin-top:25px;
+      font-size:26px;
+      font-weight:bold;
+      color:#ffd369;
+    }
+
+    .score-board{
+      display:flex;
+      justify-content:center;
+      gap:40px;
+      margin-top:20px;
+      font-size:22px;
+      font-weight:bold;
+    }
+
+  </style>
+</head>
+<body>
+
+<!-- HOME PAGE -->
+
+<div id="homePage" class="page active">
+
+  <h1>🎮 Bubble Sort Battle Game</h1>
+
+  <h2>Select Game Mode</h2>
+
+  <button onclick="setMode('ai')">
+    🤖 Play With AI
+  </button>
+
+  <button onclick="setMode('two')">
+    👥 Two Players
+  </button>
+
+  <h2>Select Level</h2>
+
+  <button onclick="startLevel(1)">
+    Level - 1
+  </button>
+
+  <button
+    id="level2Btn"
+    onclick="startLevel(2)"
+    disabled>
+
+    Level - 2 🔒
+
+  </button>
+
+  <button
+    id="level3Btn"
+    onclick="startLevel(3)"
+    disabled>
+
+    Level - 3 🔒
+
+  </button>
+
+</div>
+
+<!-- INPUT PAGE -->
+
+<div id="inputPage" class="page">
+
+  <h1>Enter Array Elements</h1>
+
+  <p>Enter numbers separated by commas</p>
+
+  <input
+    type="text"
+    id="arrayInput"
+    placeholder="Example: 5,3,8,1">
+
+  <br>
+
+  <button onclick="startVisualization()">
+    Start Battle
+  </button>
+
+  <button onclick="goHome()">
+    Back
+  </button>
+
+</div>
+
+<!-- VISUALIZATION PAGE -->
+
+<div id="visualPage" class="page">
+
+  <h1>⚔ Bubble Sort Battle</h1>
+
+  <div class="score-board">
+    <div id="player1Score">Player 1 : 0</div>
+    <div id="player2Score">AI : 0</div>
+  </div>
+
+  <div
+    class="array-container"
+    id="arrayContainer">
+  </div>
+
+  <button onclick="bubbleSortStart()">
+    Start Sorting
+  </button>
+
+  <br>
+
+  <button onclick="pauseSorting()">
+    Pause
+  </button>
+
+  <button onclick="resumeSorting()">
+    Resume
+  </button>
+
+  <button onclick="restartGame()">
+    Restart
+  </button>
+
+  <button onclick="goHome()">
+    Home
+  </button>
+
+  <div id="status"></div>
+
+</div>
+
+<script>
+
+  let arr = [];
+
+  let level = 1;
+
+  let isPaused = false;
+
+  let mode = 'ai';
+
+  let player1 = 0;
+  let player2 = 0;
+
+  // PAGE NAVIGATION
+
+  function showPage(pageId){
+
+    document.querySelectorAll('.page')
+      .forEach(page=>{
+
+        page.classList.remove('active');
+      });
+
+    document
+      .getElementById(pageId)
+      .classList.add('active');
+  }
+
+  // MODE
+
+  function setMode(selectedMode){
+
+    mode = selectedMode;
+
+    if(mode === 'ai'){
+      document.getElementById('player2Score').innerHTML = 'AI : 0';
+      alert('🤖 AI Mode Selected');
+    }
+
+    else{
+      document.getElementById('player2Score').innerHTML = 'Player 2 : 0';
+      alert('👥 Two Player Mode Selected');
+    }
+  }
+
+  // START LEVEL
+
+  function startLevel(selectedLevel){
+
+    level = selectedLevel;
+
+    showPage('inputPage');
+
+    if(level === 1){
+
+      document.getElementById('arrayInput')
+      .placeholder =
+      'Example: 5,3,8,1';
+    }
+
+    else if(level === 2){
+
+      document.getElementById('arrayInput')
+      .placeholder =
+      'Example: 12,4,20,7,15';
+    }
+
+    else{
+
+      document.getElementById('arrayInput')
+      .placeholder =
+      'Example: 45,12,67,23,89,2';
+    }
+  }
+
+  // HOME
+
+  function goHome(){
+
+    showPage('homePage');
+  }
+
+  // START VISUALIZATION
+
+  function startVisualization(){
+
+    const input =
+      document.getElementById('arrayInput').value;
+
+    if(!input){
+
+      alert('Please enter array elements');
+      return;
+    }
+
+    arr = input
+      .split(',')
+      .map(num => parseInt(num.trim()));
+
+    displayArray(arr);
+
+    showPage('visualPage');
+  }
+
+  // DISPLAY ARRAY
+
+  function displayArray(array){
+
+    const container =
+      document.getElementById('arrayContainer');
+
+    container.innerHTML = '';
+
+    array.forEach(value=>{
+
+      const bar =
+        document.createElement('div');
+
+      bar.classList.add('bar');
+
+      bar.style.height =
+        `${value * 3}px`;
+
+      bar.innerText = value;
+
+      container.appendChild(bar);
+    });
+  }
+
+  // BUBBLE SORT
+
+  async function bubbleSortStart(){
+
+    document.getElementById('status')
+      .innerHTML =
+      '⚔ Sorting Battle Started...';
+
+    const bars =
+      document.querySelectorAll('.bar');
+
+    for(let i=0;i<arr.length;i++){
+
+      for(let j=0;j<arr.length-i-1;j++){
+
+        bars[j].classList.add('active-bar');
+        bars[j+1].classList.add('active-bar');
+
+        await sleep(700);
+
+        if(arr[j] > arr[j+1]){
+
+          bars[j].classList.add('swap-bar');
+          bars[j+1].classList.add('swap-bar');
+
+          await sleep(700);
+
+          let temp = arr[j];
+          arr[j] = arr[j+1];
+          arr[j+1] = temp;
+
+          bars[j].style.height =
+            `${arr[j] * 3}px`;
+
+          bars[j].innerText = arr[j];
+
+          bars[j+1].style.height =
+            `${arr[j+1] * 3}px`;
+
+          bars[j+1].innerText = arr[j+1];
+
+          // SCORE SYSTEM
+
+          player1 += 10;
+
+          if(mode === 'ai'){
+            player2 += Math.floor(Math.random()*8);
+          }
+
+          else{
+            player2 += 5;
+          }
+
+          updateScores();
+        }
+
+        bars[j].classList.remove('active-bar','swap-bar');
+        bars[j+1].classList.remove('active-bar','swap-bar');
+      }
+
+      bars[arr.length-i-1]
+        .classList.add('sorted');
+    }
+
+    document.getElementById('status')
+      .innerHTML =
+      '🏆 Level Completed!';
+
+    nextLevel();
+  }
+
+  // SCORE UPDATE
+
+  function updateScores(){
+
+    document.getElementById('player1Score')
+      .innerHTML =
+      `Player 1 : ${player1}`;
+
+    if(mode === 'ai'){
+
+      document.getElementById('player2Score')
+        .innerHTML =
+        `AI : ${player2}`;
+    }
+
+    else{
+
+      document.getElementById('player2Score')
+        .innerHTML =
+        `Player 2 : ${player2}`;
+    }
+  }
+
+  // NEXT LEVEL
+
+  function nextLevel(){
+
+    if(level === 1){
+
+      document.getElementById('level2Btn')
+        .disabled = false;
+
+      document.getElementById('level2Btn')
+        .innerHTML = 'Level - 2';
+
+      setTimeout(()=>{
+
+        alert('🎉 Level 1 Completed!');
+
+        startLevel(2);
+
+      },1500);
+    }
+
+    else if(level === 2){
+
+      document.getElementById('level3Btn')
+        .disabled = false;
+
+      document.getElementById('level3Btn')
+        .innerHTML = 'Level - 3';
+
+      setTimeout(()=>{
+
+        alert('🎉 Level 2 Completed!');
+
+        startLevel(3);
+
+      },1500);
+    }
+
+    else{
+
+      setTimeout(()=>{
+
+        if(player1 > player2){
+          alert('🏆 Player 1 Wins The Game!');
+        }
+
+        else if(player2 > player1){
+          alert('🤖 AI / Player 2 Wins!');
+        }
+
+        else{
+          alert('🤝 Match Draw!');
+        }
+
+        goHome();
+
+      },1500);
+    }
+  }
+
+  // PAUSE
+
+  function pauseSorting(){
+
+    isPaused = true;
+  }
+
+  // RESUME
+
+  function resumeSorting(){
+
+    isPaused = false;
+  }
+
+  // RESTART
+
+  function restartGame(){
+
+    location.reload();
+  }
+
+  // SLEEP
+
+  async function sleep(ms){
+
+    while(isPaused){
+
+      await new Promise(resolve =>
+        setTimeout(resolve,100)
+      );
+    }
+
+    return new Promise(resolve =>
+      setTimeout(resolve,ms)
+    );
+  }
+
+</script>
+
+</body>
+</html>
